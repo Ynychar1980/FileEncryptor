@@ -19,7 +19,7 @@ namespace FileEncryptor.WPF.Infrastructure.Commands.Base
             remove => CommandManager.RequerySuggested -= value;
         }
 
-        private bool _Executable;
+        private bool _Executable = true;
 
         public bool Executable
         {
