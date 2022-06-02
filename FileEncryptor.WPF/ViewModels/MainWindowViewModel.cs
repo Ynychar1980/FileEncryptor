@@ -69,7 +69,7 @@ namespace FileEncryptor.WPF.ViewModels
 
         private bool CanEncryptCommandExecute(object p) => (p is FileInfo file && file.Exists || SelectedFile != null) && !string.IsNullOrWhiteSpace(Password);
 
-        private void OnEncryptCommandExecuted(object p)
+        private async void OnEncryptCommandExecuted(object p)
         {
             var file = p as FileInfo ?? SelectedFile;
             if (file is null) return;
@@ -78,7 +78,11 @@ namespace FileEncryptor.WPF.ViewModels
             if (!_UserDialog.SaveFile("Выбор файл для сохранения", out var destination_path, default_file_name)) return;
 
             var timer = Stopwatch.StartNew();
-            _Encryptor.Encrypt(file.FullName, destination_path, Password);
+
+            var encryption_task = _Encryptor.EncryptAsync(file.FullName, destination_path, Password);
+
+            await encryption_task;
+
             timer.Stop();
 
             _UserDialog.Information("Шифрование", $"Шифрование файла успешно завершено за {timer.Elapsed.TotalSeconds:0.##} с");

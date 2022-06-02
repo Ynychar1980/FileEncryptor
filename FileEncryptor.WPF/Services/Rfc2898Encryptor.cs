@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
-using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using FileEncryptor.WPF.Services.Interfaces;
 
 namespace FileEncryptor.WPF.Services
@@ -46,6 +46,7 @@ namespace FileEncryptor.WPF.Services
             int readed;
             do
             {
+                Thread.Sleep(1);
                 readed = source.Read(buffer, 0, BufferLength);
                 destination.Write(buffer, 0, readed);
             }
@@ -67,6 +68,56 @@ namespace FileEncryptor.WPF.Services
             {
                 readed = encrypted_source.Read(buffer, 0, BufferLength);
                 destination.Write(buffer, 0, readed);
+            }
+            while (readed > 0);
+
+            try
+            {
+                destination.FlushFinalBlock();
+            }
+            catch (CryptographicException)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
+        public async Task EncryptAsync(string SourcePath, string DestinationPath, string Password, int BufferLength = 104200)
+        {
+            var encryptor = GetEncryptor(Password/*, Encoding.UTF8.GetBytes(SourcePath)*/);
+
+            await using var destination_encrypted = File.Create(DestinationPath, BufferLength);
+            await using var destination = new CryptoStream(destination_encrypted, encryptor, CryptoStreamMode.Write);
+            await using var source = File.OpenRead(SourcePath);
+
+            var buffer = new byte[BufferLength];
+            int readed;
+            do
+            {
+                readed = await source.ReadAsync(buffer, 0, BufferLength).ConfigureAwait(false);
+                await destination.WriteAsync(buffer, 0, readed).ConfigureAwait(false);
+                Thread.Sleep(1);
+            }
+            while (readed > 0);
+            destination.FlushFinalBlock();
+        }
+
+        public async Task<bool> DecryptAsync(string SourcePath, string DestinationPath, string Password, int BufferLength = 104200)
+        {
+            var decryptor = GetDecryptor(Password);
+
+            await using var destination_decrypted = File.Create(DestinationPath, BufferLength);
+            await using var destination = new CryptoStream(destination_decrypted, decryptor, CryptoStreamMode.Write);
+            await using var encrypted_source = File.OpenRead(SourcePath);
+
+            var buffer = new byte[BufferLength];
+            int readed;
+            do
+            {
+                readed = await encrypted_source.ReadAsync(buffer, 0, BufferLength).ConfigureAwait(false);
+                await destination.WriteAsync(buffer, 0, readed).ConfigureAwait(false);
             }
             while (readed > 0);
 
