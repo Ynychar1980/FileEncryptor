@@ -12,20 +12,18 @@ namespace FileEncryptor.WPF
     {
         public static Window FocusedWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsFocused);
 
-        public static Window ActiveWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsActive);
+        public static Window ActivedWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsActive);
 
         private static IHost __Host;
 
-        public static IHost Host => __Host 
-            ??= Program.CreaHostBuilder(Environment.GetCommandLineArgs()).Build();
+        public static IHost Host => __Host ??= Program.CreateHostBuilder(Environment.GetCommandLineArgs()).Build();
 
         public static IServiceProvider Services => Host.Services;
 
-        public static void ConfigureServices(HostBuilderContext host, IServiceCollection services)
-        {
-            services.AddService();
-            services.AddViewModels();
-        }
+        public static void ConfigureServices(HostBuilderContext host, IServiceCollection services) => services
+            .AddServices()
+            .AddViewModels()
+        ;
 
         protected override async void OnStartup(StartupEventArgs e)
         {

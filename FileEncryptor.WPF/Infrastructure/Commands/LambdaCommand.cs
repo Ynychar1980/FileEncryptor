@@ -9,11 +9,11 @@ namespace FileEncryptor.WPF.Infrastructure.Commands
         private readonly Func<object, bool> _CanExecute;
 
         public LambdaCommand(Action Execute, Func<bool> CanExecute = null)
-            :this(
-                p=>Execute(), 
-                CanExecute is null ? (Func<object, bool>)null : p=>CanExecute())
+            : this(
+                Execute: p => Execute(),
+                CanExecute: CanExecute is null ? (Func<object, bool>)null : p => CanExecute())
         {
-            
+
         }
 
         public LambdaCommand(Action<object> Execute, Func<object, bool> CanExecute = null)
